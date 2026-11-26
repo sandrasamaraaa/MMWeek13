@@ -82,10 +82,24 @@
       }
       setTimeout(function(){
         var tag=document.getElementById('mode-tag');
-        if(tag && tag.textContent==='CONNECTING') show('app.js did not start. Check that app.js and config.js are uploaded next to this page (names are case-sensitive on GitHub Pages) and that config.js has no typo. Open the browser console (F12) for details.');
+        if(tag && tag.textContent==='CONNECTING' && document.getElementById('error-banner').hidden) show('app.js did not start. Check that app.js and config.js are uploaded next to this page (names are case-sensitive on GitHub Pages) and that config.js has no typo. Open the browser console (F12) for details.');
       },8000);
     })();
   </script>
-  <script type="module" src="app.js"></script>
+  <script type="module">
+    // Loads app.js and shows the real error on screen if it fails.
+    import('./app.js?v=3').catch(function(err){
+      console.error(err);
+      var tag=document.getElementById('mode-tag'); if(tag) tag.textContent='SCRIPT ERROR';
+      var b=document.getElementById('error-banner');
+      if(b){b.hidden=false;b.className='notice error';
+        var m=String(err && err.message || err);
+        var hint='';
+        if(/export named|does not provide an export|requested module|module specifier|initializeApp/i.test(m)) hint=' FIX: config.js must start with "export const firebaseConfig = {". Do not paste the Firebase "import { initializeApp }" lines or "const app = initializeApp(...)" into config.js.';
+        else if(/404|Failed to fetch|error loading/i.test(m)) hint=' FIX: app.js or config.js is missing from the repo, or the file name has different capitals.';
+        else if(/Unexpected|SyntaxError|Invalid or unexpected/i.test(m)) hint=' FIX: there is a typo in config.js (missing comma, quote or bracket).';
+        b.textContent='app.js could not start: '+m+'.'+hint;}
+    });
+  </script>
 </body>
 </html>

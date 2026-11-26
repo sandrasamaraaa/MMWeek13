@@ -53,15 +53,9 @@
           <span class="overline">LIVE STANDINGS</span><h2>Island explorers</h2>
           <div id="leaderboard"><p class="empty-state">Scores appear when players solve words.</p></div>
         </section>
-        <section class="surface sidebar-section setup-box">
-          <span class="overline">FIREBASE PRESENTER SETUP</span>
-          <p class="setup-detail">This browser's anonymous Firebase UID:</p>
-          <div class="uid-row"><code id="presenter-uid">Not connected</code><button type="button" id="copy-uid" class="button small">Copy UID</button></div>
-          <p class="setup-detail">For the live game, paste this UID into <code>PRESENTER_UID</code> in <code>config.js</code> and <code>firestore.rules</code>, then publish the Firestore rules.</p>
-        </section>
       </aside>
     </div>
-    <footer class="footer">UNOFFICIAL EDUCATIONAL GAME · FROM THIS ISLAND CASE STUDY <span>Presenter controls require Firebase authorization</span></footer>
+    <footer class="footer">UNOFFICIAL EDUCATIONAL GAME · FROM THIS ISLAND CASE STUDY <span>Open this page only on the presenter laptop</span></footer>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
@@ -78,10 +72,24 @@
       }
       setTimeout(function(){
         var tag=document.getElementById('mode-tag');
-        if(tag && tag.textContent==='CONNECTING') show('app.js did not start. Check that app.js and config.js are uploaded next to this page (names are case-sensitive on GitHub Pages) and that config.js has no typo. Open the browser console (F12) for details.');
+        if(tag && tag.textContent==='CONNECTING' && document.getElementById('error-banner').hidden) show('app.js did not start. Check that app.js and config.js are uploaded next to this page (names are case-sensitive on GitHub Pages) and that config.js has no typo. Open the browser console (F12) for details.');
       },8000);
     })();
   </script>
-  <script type="module" src="app.js"></script>
+  <script type="module">
+    // Loads app.js and shows the real error on screen if it fails.
+    import('./app.js?v=3').catch(function(err){
+      console.error(err);
+      var tag=document.getElementById('mode-tag'); if(tag) tag.textContent='SCRIPT ERROR';
+      var b=document.getElementById('error-banner');
+      if(b){b.hidden=false;b.className='notice error';
+        var m=String(err && err.message || err);
+        var hint='';
+        if(/export named|does not provide an export|requested module|module specifier|initializeApp/i.test(m)) hint=' FIX: config.js must start with "export const firebaseConfig = {". Do not paste the Firebase "import { initializeApp }" lines or "const app = initializeApp(...)" into config.js.';
+        else if(/404|Failed to fetch|error loading/i.test(m)) hint=' FIX: app.js or config.js is missing from the repo, or the file name has different capitals.';
+        else if(/Unexpected|SyntaxError|Invalid or unexpected/i.test(m)) hint=' FIX: there is a typo in config.js (missing comma, quote or bracket).';
+        b.textContent='app.js could not start: '+m+'.'+hint;}
+    });
+  </script>
 </body>
 </html>

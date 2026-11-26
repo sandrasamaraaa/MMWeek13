@@ -1,4 +1,4 @@
-import { firebaseConfig, SESSION_ID, PRESENTER_UID, GAME_DURATION_SECONDS } from './config.js';
+import { firebaseConfig, SESSION_ID, GAME_DURATION_SECONDS } from './config.js';
 
 const IS_PRESENTER = document.body.dataset.role === 'presenter';
 const WORDS = [
@@ -239,7 +239,7 @@ function connectDemo(){
   $('mode-tag').classList.remove('live');
   window.addEventListener('storage',e=>{if(e.key===demoKey){session=getDemoState();render();}});
   render();
-  if(IS_PRESENTER){$('presenter-uid').textContent='Demo mode — no Firebase UID';renderStatus('Demo mode: tabs in the same browser can share this puzzle. Different devices will NOT synchronize until Firebase is configured.');}
+  if(IS_PRESENTER){renderStatus('Demo mode: tabs in the same browser can share this puzzle. Different devices will NOT synchronize until Firebase is configured.');}
 }
 function withTimeout(promise, ms, label){
   let t;
@@ -269,14 +269,10 @@ async function connectFirebase(){
   $('mode-tag').textContent='SIGNING IN';
   const response=await withTimeout(auth.signInAnonymously(a),15000,'Anonymous sign-in');
   authUser=response.user;
-  presenterAuthorized=authUser.uid===PRESENTER_UID;
+  // No UID check: whoever opens leaderboard.html controls the game.
+  presenterAuthorized=IS_PRESENTER;
   $('mode-tag').textContent='FIREBASE LIVE';$('mode-tag').classList.add('live');
-  if(IS_PRESENTER){
-    $('presenter-uid').textContent=authUser.uid;
-    if(!presenterAuthorized){
-      renderStatus('Presenter UID not authorized. Copy the UID shown below, paste it into PRESENTER_UID in config.js and firestore.rules, publish the rules, then refresh this page.',true);
-    }else renderStatus('Connected to Firebase. Only this anonymous presenter UID may start/reset rounds and reveal words.');
-  }
+  if(IS_PRESENTER)renderStatus('Connected to Firebase. Press Initialize session (first time only), then Start round.');
   sessionRef=fs.doc(db,'sessions',SESSION_ID);
   unsubSession=fs.onSnapshot(sessionRef,snap=>{
     const oldRound=session.roundId;
@@ -306,7 +302,6 @@ function setupPresenter(){
   url.search='';url.hash='';
   const link=$('player-url');link.href=url.href;link.textContent=url.href;
   $('copy-link').addEventListener('click',()=>copyText(url.href));
-  $('copy-uid').addEventListener('click',()=>copyText($('presenter-uid').textContent));
   $('init-button').addEventListener('click',()=>writeSession('init'));
   $('start-button').addEventListener('click',()=>writeSession('start'));
   $('end-button').addEventListener('click',()=>writeSession('end'));
