@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#173F35" />
+  <title>The Island Mystery · Presenter Board</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-role="presenter">
+  <main class="shell">
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><span>FROM THIS ISLAND<small>THE ISLAND MYSTERY</small></span></div>
+      <span class="session-label">PRESENTER VIEW <span id="mode-tag" class="mode-tag">CONNECTING</span></span>
+    </header>
+    <section class="hero presenter-hero">
+      <div><p class="overline">THE SHARED CLASSROOM CHALLENGE</p><h1>The Island <em>Mystery.</em></h1><p class="hero-desc">One crossword. Five Indonesian ingredients. Every correct answer fills the central board in real time.</p></div>
+      <img class="hero-art" src="assets/guava.webp" alt="Guava botanical illustration" />
+    </section>
+    <div id="error-banner" class="notice setup" hidden></div>
+    <div class="presenter-toolbar">
+      <div class="pillstats">
+        <div><span class="stat-label">TIME LEFT</span><strong id="time-label" class="timer">03:00</strong></div>
+        <div><span class="stat-label">SOLVED</span><strong id="progress-label">0 / 5</strong></div>
+        <div><span class="stat-label">ROUND</span><strong id="round-label">Waiting</strong></div>
+      </div>
+      <div class="toolbar-actions">
+        <button id="init-button" type="button" class="button" hidden>Initialize session</button>
+        <button id="start-button" type="button" class="button primary">Start round</button>
+        <button id="end-button" type="button" class="button">End round</button>
+        <button id="reset-button" type="button" class="button ghost">New round</button>
+      </div>
+    </div>
+    <div class="presenter-layout">
+      <section class="surface board-surface presenter-board">
+        <div class="section-header"><div><span class="overline">LIVE CLASS CROSSWORD</span><h2>Crack the ingredient code.</h2></div><span id="live-pill" class="live-pill">WAITING</span></div>
+        <div id="crossword" class="crossword" role="img" aria-label="Presenter's shared crossword"></div>
+        <p class="legend"><span class="legend-dot claimed"></span> Correct answers fill in immediately <span class="legend-dot selected"></span> Intersecting letters help unlock more</p>
+      </section>
+      <aside class="presenter-sidebar">
+        <section class="surface sidebar-section">
+          <span class="overline">JOIN FROM YOUR PHONE</span><h2>Scan &amp; play</h2>
+          <div class="qr-box" id="qr-box"><span>QR code appears after publishing</span></div>
+          <p class="qr-help">Or open this link:</p>
+          <a href="index.html" id="player-url" target="_blank" rel="noopener">Player link</a>
+          <button class="button small" type="button" id="copy-link">Copy player link</button>
+        </section>
+        <section class="surface sidebar-section">
+          <div class="section-header"><div><span class="overline">WORDS CLAIMED</span><h2>First correct answer wins.</h2></div></div>
+          <div id="clues" class="clue-list admin-list"></div>
+        </section>
+        <section class="surface sidebar-section standings">
+          <span class="overline">LIVE STANDINGS</span><h2>Island explorers</h2>
+          <div id="leaderboard"><p class="empty-state">Scores appear when players solve words.</p></div>
+        </section>
+        <section class="surface sidebar-section setup-box">
+          <span class="overline">FIREBASE PRESENTER SETUP</span>
+          <p class="setup-detail">This browser's anonymous Firebase UID:</p>
+          <div class="uid-row"><code id="presenter-uid">Not connected</code><button type="button" id="copy-uid" class="button small">Copy UID</button></div>
+          <p class="setup-detail">For the live game, paste this UID into <code>PRESENTER_UID</code> in <code>config.js</code> and <code>firestore.rules</code>, then publish the Firestore rules.</p>
+        </section>
+      </aside>
+    </div>
+    <footer class="footer">UNOFFICIAL EDUCATIONAL GAME · FROM THIS ISLAND CASE STUDY <span>Presenter controls require Firebase authorization</span></footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

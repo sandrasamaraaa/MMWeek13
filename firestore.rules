@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // STEP 1: In leaderboard.html, copy the anonymous Firebase UID displayed
+    // in Presenter setup. STEP 2: Replace the string below with that UID.
+    function isPresenter() {
+      return request.auth != null
+        && request.auth.uid == 'PASTE_PRESENTER_ANONYMOUS_UID';
+    }
+
+    function signedIn() { return request.auth != null; }
+
+    function validSessionData() {
+      return request.resource.data.keys().hasOnly([
+          'roundId', 'status', 'startedAt', 'durationSec', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'roundId', 'status', 'startedAt', 'durationSec', 'updatedAt'
+        ])
+        && request.resource.data.roundId is string
+        && request.resource.data.roundId.size() > 0
+        && request.resource.data.roundId.size() <= 80
+        && request.resource.data.durationSec == 180
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // The rules, rather than client-only scoring, verify the answer for each clue.
+    function isCorrectWord(wordId, answer) {
+      return (wordId == 'MANGOSTEEN' && answer == 'MANGOSTEEN')
+          || (wordId == 'TURMERIC' && answer == 'TURMERIC')
+          || (wordId == 'SUGARCANE' && answer == 'SUGARCANE')
+          || (wordId == 'GUAVA' && answer == 'GUAVA')
+          || (wordId == 'BLACKTEA' && answer == 'BLACKTEA');
+    }
+
+    match /sessions/{sessionId} {
+      allow read: if signedIn();
+      allow create: if isPresenter()
+        && validSessionData()
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.startedAt == null;
+
+      allow update: if isPresenter()
+        && validSessionData()
+        && (
+          // Start waiting round with server-authoritative start time.
+          (request.resource.data.roundId == resource.data.roundId
+            && resource.data.status == 'waiting'
+            && request.resource.data.status == 'live'
+            && request.resource.data.startedAt == request.time)
+          ||
+          // End an existing round without modifying its original start time.
+          (request.resource.data.roundId == resource.data.roundId
+            && resource.data.status == 'live'
+            && request.resource.data.status == 'finished'
+            && request.resource.data.startedAt == resource.data.startedAt)
+          ||
+          // New round ID means previous word claims remain archived but not visible.
+          (request.resource.data.roundId != resource.data.roundId
+            && request.resource.data.status == 'waiting'
+            && request.resource.data.startedAt == null)
+        );
+      allow delete: if false;
+
+      match /rounds/{roundId}/claims/{wordId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly([
+            'answer', 'nickname', 'uid', 'source', 'claimedAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'answer', 'nickname', 'uid', 'source', 'claimedAt'
+          ])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.nickname is string
+          && request.resource.data.nickname.size() >= 2
+          && request.resource.data.nickname.size() <= 20
+          && request.resource.data.claimedAt == request.time
+          && isCorrectWord(wordId, request.resource.data.answer)
+          && (
+            request.resource.data.source == 'player'
+            || (request.resource.data.source == 'presenter' && isPresenter())
+          )
+          // Only current-round claims are accepted.
+          && exists(/databases/$(database)/documents/sessions/$(sessionId))
+          && get(/databases/$(database)/documents/sessions/$(sessionId)).data.roundId == roundId
+          && get(/databases/$(database)/documents/sessions/$(sessionId)).data.status == 'live'
+          // Firebase server time, not the phone's local clock, controls deadlines.
+          && get(/databases/$(database)/documents/sessions/$(sessionId)).data.startedAt is timestamp
+          && request.time < get(/databases/$(database)/documents/sessions/$(sessionId)).data.startedAt
+              + duration.value(180, 's');
+        // A word cannot be overwritten, unclaimed, or claimed twice.
+        allow update, delete: if false;
+      }
+    }
+  }
+}

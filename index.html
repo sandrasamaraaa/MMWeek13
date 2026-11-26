@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#173F35" />
+  <meta name="description" content="The Island Mystery — an interactive shared crossword based on Indonesian botanicals." />
+  <title>The Island Mystery · Play</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-role="player">
+  <main class="shell">
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><span>FROM THIS ISLAND<small>THE ISLAND MYSTERY</small></span></div>
+      <span class="session-label">CLASSROOM EDITION <span id="mode-tag" class="mode-tag">CONNECTING</span></span>
+    </header>
+
+    <section class="hero player-hero">
+      <div>
+        <p class="overline">AN INGREDIENT CROSSWORD CHALLENGE</p>
+        <h1>Discover the <em>Island.</em></h1>
+        <p class="hero-desc">Five ingredients. One shared crossword. Be the first to claim an answer—and watch it appear on everyone's screen.</p>
+      </div>
+      <img class="hero-art" src="assets/mangosteen.webp" alt="Mangosteen botanical illustration" />
+    </section>
+
+    <section class="join-card" id="join-card">
+      <div><h2>Ready to play?</h2><p>Enter your nickname. Your answers will appear on the shared classroom board.</p></div>
+      <form id="join-form" class="join-form">
+        <label for="nickname" class="sr-only">Nickname</label>
+        <input id="nickname" type="text" placeholder="Your nickname" maxlength="20" minlength="2" autocomplete="nickname" required />
+        <button type="submit" class="button primary">Join the mystery <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+
+    <section id="game-content" hidden>
+      <div class="status-strip">
+        <div><span class="stat-label">PLAYER</span><strong id="player-label">Explorer</strong></div>
+        <div><span class="stat-label">CLASS PROGRESS</span><strong id="progress-label">0 / 5</strong></div>
+        <div><span class="stat-label">YOUR SCORE</span><strong id="score-label">0</strong></div>
+        <div class="time-group"><span class="stat-label">TIME LEFT</span><strong id="time-label" class="timer">03:00</strong></div>
+      </div>
+      <div id="round-message" class="notice" role="status">Waiting for the presenter to start.</div>
+      <div class="player-layout">
+        <section class="surface board-surface">
+          <div class="section-header"><div><span class="overline">THE SHARED CROSSWORD</span><h2>Everyone sees the same board.</h2></div><span class="small-label" id="round-label">ROUND</span></div>
+          <div id="crossword" class="crossword" role="img" aria-label="Shared crossword with claimed answers shown in green"></div>
+          <p class="legend"><span class="legend-dot claimed"></span> Claimed and locked <span class="legend-dot selected"></span> Your selected clue</p>
+        </section>
+        <section class="surface clues-surface">
+          <div class="section-header"><div><span class="overline">GUESS THE INGREDIENT</span><h2>Choose a clue.</h2></div></div>
+          <div id="clues" class="clue-list"></div>
+          <form id="answer-form" class="answer-form">
+            <label class="answer-label" for="answer">YOUR ANSWER <span id="selected-label"></span></label>
+            <div class="answer-row">
+              <input id="answer" type="text" placeholder="Type the ingredient" maxlength="24" autocapitalize="characters" autocomplete="off" spellcheck="false" />
+              <button id="submit-answer" class="button accent" type="submit">Claim word</button>
+            </div>
+            <p id="answer-feedback" class="field-help">Correct answers are worth one point. Each word can be claimed only once.</p>
+          </form>
+        </section>
+      </div>
+      <section id="finished-panel" class="finished-panel" hidden>
+        <img src="assets/turmeric.webp" alt="" /><div><p class="overline">THE ISLAND HAS BEEN DISCOVERED</p><h2>Round complete!</h2><p id="final-summary">Thanks for playing.</p></div>
+      </section>
+    </section>
+    <footer class="footer">UNOFFICIAL EDUCATIONAL GAME · FROM THIS ISLAND CASE STUDY <span>Designed for a hybrid classroom</span></footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
