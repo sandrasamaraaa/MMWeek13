@@ -16,6 +16,6 @@ export const SESSION_ID = 'rehearsal-1';
 
 // Get this from leaderboard.html after signing in anonymously on the PRESENTER browser.
 // Paste the exact same UID in firestore.rules before using presenter controls.
-export const PRESENTER_UID = 5cNgDCsZ6oZEQNh9mpbU2BcPDjV2;
+export const PRESENTER_UID = '5cNgDCsZ6oZEQNh9mpbU2BcPDjV2';
 
 export const GAME_DURATION_SECONDS = 180;
