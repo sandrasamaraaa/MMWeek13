@@ -24,6 +24,8 @@
       <img class="hero-art" src="assets/mangosteen.webp" alt="Mangosteen botanical illustration" />
     </section>
 
+    <div id="error-banner" class="notice setup" hidden></div>
+
     <section class="join-card" id="join-card">
       <div><h2>Ready to play?</h2><p>Enter your nickname. Your answers will appear on the shared classroom board.</p></div>
       <form id="join-form" class="join-form">
@@ -67,6 +69,23 @@
     <footer class="footer">UNOFFICIAL EDUCATIONAL GAME · FROM THIS ISLAND CASE STUDY <span>Designed for a hybrid classroom</span></footer>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    // Watchdog: explains a stuck "CONNECTING" label instead of leaving it silent.
+    (function(){
+      function show(msg){
+        var tag=document.getElementById('mode-tag'); if(tag) tag.textContent='NOT RUNNING';
+        var b=document.getElementById('error-banner'); if(b){b.hidden=false;b.className='notice error';b.textContent=msg;}
+      }
+      if(location.protocol==='file:'){
+        show('This page was opened as a local file, so the browser blocks app.js. Open it from your GitHub Pages URL, or run "python3 -m http.server 8000" in this folder and visit http://localhost:8000/.');
+        return;
+      }
+      setTimeout(function(){
+        var tag=document.getElementById('mode-tag');
+        if(tag && tag.textContent==='CONNECTING') show('app.js did not start. Check that app.js and config.js are uploaded next to this page (names are case-sensitive on GitHub Pages) and that config.js has no typo. Open the browser console (F12) for details.');
+      },8000);
+    })();
+  </script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

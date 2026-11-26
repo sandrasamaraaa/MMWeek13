@@ -241,19 +241,33 @@ function connectDemo(){
   render();
   if(IS_PRESENTER){$('presenter-uid').textContent='Demo mode — no Firebase UID';renderStatus('Demo mode: tabs in the same browser can share this puzzle. Different devices will NOT synchronize until Firebase is configured.');}
 }
+function withTimeout(promise, ms, label){
+  let t;
+  return Promise.race([promise, new Promise((_,reject)=>{t=setTimeout(()=>reject(Error(`${label} timed out after ${ms/1000}s`)),ms);})]).finally(()=>clearTimeout(t));
+}
+function friendlyFirebaseError(err){
+  const code=err&&err.code||'';
+  if(code==='auth/configuration-not-found'||code==='auth/operation-not-allowed')return 'Anonymous sign-in is not enabled. Firebase Console > Authentication > Sign-in method > Anonymous > Enable.';
+  if(code==='auth/invalid-api-key'||code==='auth/api-key-not-valid.-please-pass-a-valid-api-key.')return 'The apiKey in config.js is wrong. Copy it again from Project settings > Your apps.';
+  if(code==='auth/network-request-failed')return 'Network blocked the Firebase sign-in request. Try another Wi-Fi or mobile data.';
+  if(code==='auth/requests-from-referer-are-blocked'||code==='auth/unauthorized-domain')return 'This domain is not allowed. Add your github.io domain in Authentication > Settings > Authorized domains (and in the API key restrictions, if any).';
+  return (err&&err.message)||String(err);
+}
 async function connectFirebase(){
   // Dynamic imports allow the visual design to work in local demo mode even without CDN access.
   const version='13.4.0';
-  const [app,auth,fs]=await Promise.all([
+  $('mode-tag').textContent='LOADING FIREBASE';
+  const [app,auth,fs]=await withTimeout(Promise.all([
     import(`https://www.gstatic.com/firebasejs/${version}/firebase-app.js`),
     import(`https://www.gstatic.com/firebasejs/${version}/firebase-auth.js`),
     import(`https://www.gstatic.com/firebasejs/${version}/firebase-firestore.js`)
-  ]);
+  ]),15000,'Loading the Firebase library (gstatic.com may be blocked on this network)');
   firebaseApi={app,auth,fs};
   const firebaseApp=app.initializeApp(firebaseConfig);
   const a=auth.getAuth(firebaseApp);
   db=fs.getFirestore(firebaseApp);
-  const response=await auth.signInAnonymously(a);
+  $('mode-tag').textContent='SIGNING IN';
+  const response=await withTimeout(auth.signInAnonymously(a),15000,'Anonymous sign-in');
   authUser=response.user;
   presenterAuthorized=authUser.uid===PRESENTER_UID;
   $('mode-tag').textContent='FIREBASE LIVE';$('mode-tag').classList.add('live');
@@ -345,8 +359,10 @@ async function boot(){
     try{await connectFirebase();}
     catch(err){
       $('mode-tag').textContent='CONNECT ERROR';
-      renderStatus(`Firebase initialization failed: ${err.message}. Make sure Anonymous Auth is enabled and config.js is correct.`,true);
-      toast(`Could not connect to Firebase: ${err.message}`);
+      const msg=friendlyFirebaseError(err);
+      console.error('Firebase connection failed:',err);
+      renderStatus(`Firebase connection failed: ${msg}`,true);
+      toast(`Could not connect to Firebase: ${msg}`);
       // Do not silently fall back to demo after a configured Firebase failure.
     }
   }
